@@ -1,0 +1,8 @@
+"use strict";
+import { GW_FRAME_REQ } from "./common.js";
+export class GW_CS_GET_SYSTEMTABLE_DATA_REQ extends GW_FRAME_REQ {
+    constructor() {
+        super(0);
+    }
+}
+//# sourceMappingURL=GW_CS_GET_SYSTEMTABLE_DATA_REQ.js.map

@@ -1,0 +1,77 @@
+# Run this workflow on all pushes and pull requests
+# as well as tags with a semantic version
+on:
+    push:
+        # Configure your tested branches here, I like to check all of them. You can leave this out if you only want to deploy
+        branches:
+            - "*"
+        # You MUST limit tags to ones that are compatible with the version scheme this script uses. DO NOT include any others or they will be released aswell
+        tags:
+            # normal versions
+            - "v[0-9]+.[0-9]+.[0-9]+"
+            # pre-releases
+            - "v[0-9]+.[0-9]+.[0-9]+-**"
+    # This runs the workflow for all pull requests. You can leave this out if you only want to deploy
+    pull_request: {}
+
+# Cancel previous PR/branch runs when a new commit is pushed
+concurrency:
+    group: ${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22.x
+            - run: npm ci
+            - run: npm run build
+
+    unit-tests:
+        needs: [build]
+
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                node-version: [18.x, 20.x, 22.x]
+                os: [ubuntu-latest, windows-latest, macos-latest]
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - run: npm ci
+            - run: npm run build --if-present
+            - run: npm test
+
+    # Deploys the final package to NPM and Github Actions
+    deploy:
+        # Trigger this step only when a commit on master is tagged with a version number
+        if: |
+            contains(github.event.head_commit.message, '[skip ci]') == false &&
+            github.event_name == 'push' &&
+            startsWith(github.ref, 'refs/tags/v')
+
+        # Define which jobst must succeed before the release
+        needs: [unit-tests]
+
+        runs-on: ubuntu-latest
+
+        # Write permissions are required to create Github releases
+        permissions:
+            contents: write
+
+        steps:
+            - uses: ioBroker/testing-action-deploy@v1
+              with:
+                  node-version: "22.x"
+                  # Uncomment the following line if your adapter cannot be installed using 'npm ci'
+                  # install-command: 'npm install'
+                  build: true
+                  npm-token: ${{ secrets.NPM_TOKEN }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}

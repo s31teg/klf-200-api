@@ -1,0 +1,50 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GW_STATUS_REQUEST_REQ = void 0;
+const common_js_1 = require("./common.js");
+class GW_STATUS_REQUEST_REQ extends common_js_1.GW_FRAME_COMMAND_REQ {
+    Nodes;
+    StatusType;
+    FunctionalParameters;
+    constructor(Nodes, StatusType, FunctionalParameters = []) {
+        super(26);
+        this.Nodes = Nodes;
+        this.StatusType = StatusType;
+        this.FunctionalParameters = FunctionalParameters;
+        const buff = this.Data.subarray(this.offset);
+        buff.writeUInt16BE(this.SessionID, 0);
+        // Multiple nodes are provided
+        if (Array.isArray(this.Nodes)) {
+            if (this.Nodes.length > 20)
+                throw new Error("Too many nodes.");
+            buff.writeUInt8(this.Nodes.length, 2);
+            for (let nodeIndex = 0; nodeIndex < this.Nodes.length; nodeIndex++) {
+                const node = this.Nodes[nodeIndex];
+                buff.writeUInt8(node, 3 + nodeIndex);
+            }
+        }
+        else {
+            buff.writeUInt8(1, 2);
+            buff.writeUInt8(this.Nodes, 3);
+        }
+        buff.writeUInt8(this.StatusType, 23);
+        let FPI1 = 0;
+        let FPI2 = 0;
+        for (let functionalParameterIndex = 0; functionalParameterIndex < this.FunctionalParameters.length; functionalParameterIndex++) {
+            const functionalParameter = this.FunctionalParameters[functionalParameterIndex];
+            const functionalParameterID = functionalParameter - 1;
+            if (functionalParameterID < 0 || functionalParameterID > 15)
+                throw new Error("Functional paramter ID out of range.");
+            if (functionalParameterID < 8) {
+                FPI1 |= 0x80 >>> functionalParameterID;
+            }
+            else {
+                FPI2 |= 0x80 >>> (functionalParameterID - 8);
+            }
+        }
+        buff.writeUInt8(FPI1, 24);
+        buff.writeUInt8(FPI2, 25);
+    }
+}
+exports.GW_STATUS_REQUEST_REQ = GW_STATUS_REQUEST_REQ;
+//# sourceMappingURL=GW_STATUS_REQUEST_REQ.js.map

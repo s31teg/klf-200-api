@@ -1,0 +1,25 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GW_GET_ALL_NODES_INFORMATION_CFM = void 0;
+const common_js_1 = require("./common.js");
+class GW_GET_ALL_NODES_INFORMATION_CFM extends common_js_1.GW_FRAME_CFM {
+    Status;
+    NumberOfNode;
+    constructor(Data) {
+        super(Data);
+        this.Status = this.Data.readUInt8(0);
+        this.NumberOfNode = this.Data.readUInt8(1);
+    }
+    getError() {
+        switch (this.Status) {
+            case common_js_1.GW_COMMON_STATUS.SUCCESS:
+                throw new Error("No error.");
+            case common_js_1.GW_COMMON_STATUS.ERROR:
+                return "System table empty.";
+            default:
+                return `Unknown error ${this.Status}.`;
+        }
+    }
+}
+exports.GW_GET_ALL_NODES_INFORMATION_CFM = GW_GET_ALL_NODES_INFORMATION_CFM;
+//# sourceMappingURL=GW_GET_ALL_NODES_INFORMATION_CFM.js.map

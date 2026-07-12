@@ -1,0 +1,25 @@
+"use strict";
+import { bitArrayToArray } from "../utils/BitArray.js";
+import { GW_FRAME_CFM } from "./common.js";
+export class GW_CS_ACTIVATE_CONFIGURATION_MODE_CFM extends GW_FRAME_CFM {
+    ActivatedNodes;
+    NoContactNodes;
+    OtherErrorNodes;
+    Status;
+    constructor(Data) {
+        super(Data);
+        this.ActivatedNodes = bitArrayToArray(this.Data.subarray(0, 26));
+        this.NoContactNodes = bitArrayToArray(this.Data.subarray(26, 52));
+        this.OtherErrorNodes = bitArrayToArray(this.Data.subarray(52, 78));
+        this.Status = this.Data.readUInt8(78);
+    }
+    getError() {
+        switch (this.Status) {
+            case 0:
+                throw new Error("No error.");
+            default:
+                return `Error code ${this.Status.toString()}.`;
+        }
+    }
+}
+//# sourceMappingURL=GW_CS_ACTIVATE_CONFIGURATION_MODE_CFM.js.map

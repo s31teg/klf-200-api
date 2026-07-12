@@ -1,0 +1,24 @@
+"use strict";
+import { GW_COMMON_STATUS, GW_FRAME_CFM } from "./common.js";
+export class GW_NEW_GROUP_CFM extends GW_FRAME_CFM {
+    Status;
+    GroupID;
+    constructor(Data) {
+        super(Data);
+        this.Status = this.Data.readUInt8(0);
+        this.GroupID = this.Data.readUInt8(1);
+    }
+    getError() {
+        switch (this.Status) {
+            case GW_COMMON_STATUS.SUCCESS:
+                throw new Error("No error.");
+            case GW_COMMON_STATUS.ERROR:
+                return "Request failed.";
+            case GW_COMMON_STATUS.INVALID_NODE_ID:
+                return "Invalid group ID.";
+            default:
+                return `Unknown error ${this.Status}.`;
+        }
+    }
+}
+//# sourceMappingURL=GW_NEW_GROUP_CFM.js.map
