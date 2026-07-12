@@ -1,0 +1,13 @@
+"use strict";
+import { GW_FRAME_REQ } from "./common.js";
+import { ActuatorType } from "./GW_SYSTEMTABLE_DATA.js";
+export class GW_CS_DISCOVER_NODES_REQ extends GW_FRAME_REQ {
+    NodeType;
+    constructor(NodeType = ActuatorType.NO_TYPE) {
+        super(1);
+        this.NodeType = NodeType;
+        const buff = this.Data.subarray(this.offset);
+        buff.writeUInt8(this.NodeType, 0);
+    }
+}
+//# sourceMappingURL=GW_CS_DISCOVER_NODES_REQ.js.map
